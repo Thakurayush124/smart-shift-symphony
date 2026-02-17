@@ -8,6 +8,7 @@ interface CRQBlockProps {
   engineerLevel: string;
   hourWidth: number;
   startOffset: number;
+  onDragStart?: (schedule: CRQSchedule) => void;
 }
 
 const requestorStyles: Record<RequestorType, { bg: string; border: string; text: string }> = {
@@ -22,17 +23,25 @@ const slaDot: Record<string, string> = {
   'Breached': 'bg-status-conflict animate-pulse-glow',
 };
 
-const CRQBlock = ({ schedule, engineerName, engineerLevel, hourWidth, startOffset }: CRQBlockProps) => {
+const CRQBlock = ({ schedule, engineerName, engineerLevel, hourWidth, startOffset, onDragStart }: CRQBlockProps) => {
   const duration = schedule.endHour - schedule.startHour;
   const width = duration * hourWidth - 4;
   const left = startOffset;
   const style = requestorStyles[schedule.requestor];
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(schedule));
+    e.dataTransfer.effectAllowed = 'move';
+    onDragStart?.(schedule);
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div
-          className={`absolute top-1 rounded-md border cursor-pointer transition-all hover:scale-[1.02] hover:z-10 ${style.bg} ${style.border} overflow-hidden`}
+          draggable
+          onDragStart={handleDragStart}
+          className={`absolute top-1 rounded-md border cursor-grab active:cursor-grabbing transition-all hover:scale-[1.02] hover:z-10 ${style.bg} ${style.border} overflow-hidden`}
           style={{ left: `${left}px`, width: `${width}px`, height: 'calc(100% - 8px)' }}
         >
           <div className="p-1.5 h-full flex flex-col justify-between">
