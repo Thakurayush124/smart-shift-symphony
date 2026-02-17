@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ArrowLeft, CalendarIcon } from 'lucide-react';
@@ -23,7 +23,7 @@ const ScheduleTimeline = () => {
   });
 
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
-  const allSchedules = [...mockSchedules, ...extraSchedules];
+  const allSchedules = useMemo(() => [...mockSchedules, ...extraSchedules], [extraSchedules]);
 
   const daySchedules = useMemo(() => {
     return allSchedules
@@ -45,6 +45,32 @@ const ScheduleTimeline = () => {
     setExtraSchedules(prev => [...prev, { ...s, date: dateStr }]);
   };
 
+  const handleReschedule = useCallback((scheduleId: string, newEngineerId: string, newStartHour: number, newEndHour: number) => {
+    // Check if it's a mock schedule or extra
+    const isMock = mockSchedules.some(s => s.id === scheduleId);
+    if (isMock) {
+      // Move mock to extra with updated values
+      const original = mockSchedules.find(s => s.id === scheduleId)!;
+      setExtraSchedules(prev => [
+        ...prev,
+        { ...original, id: `${scheduleId}-moved`, engineerId: newEngineerId, startHour: newStartHour, endHour: newEndHour },
+        // Mark original as "removed" by adding a placeholder
+      ]);
+      // We can't mutate mockSchedules, so we track moved IDs
+    } else {
+      setExtraSchedules(prev =>
+        prev.map(s => s.id === scheduleId
+          ? { ...s, engineerId: newEngineerId, startHour: newStartHour, endHour: newEndHour }
+          : s
+        )
+      );
+    }
+  }, []);
+
+  // Filter out mock schedules that were "moved"
+  const movedIds = extraSchedules.filter(s => s.id.endsWith('-moved')).map(s => s.id.replace('-moved', ''));
+  const effectiveSchedules = daySchedules.filter(s => !movedIds.includes(s.id));
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-8">
       <div className="max-w-[1600px] mx-auto">
@@ -56,11 +82,11 @@ const ScheduleTimeline = () => {
             </Button>
             <div>
               <h1 className="text-xl font-bold">Schedule Timeline</h1>
-              <p className="text-sm text-muted-foreground">L4 → L1 hierarchy view</p>
+              <p className="text-sm text-muted-foreground">L4 → L1 hierarchy view · Drag CRQs to reschedule</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ManualScheduleDialog engineers={allEngineers} schedules={daySchedules} onSchedule={handleNewSchedule} />
+            <ManualScheduleDialog engineers={allEngineers} schedules={effectiveSchedules} onSchedule={handleNewSchedule} />
             <Popover open={calOpen} onOpenChange={setCalOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="gap-2 bg-secondary border-border">
@@ -92,8 +118,8 @@ const ScheduleTimeline = () => {
         </div>
 
         <FilterBar onFiltersChange={setFilters} />
-        <TimelineGrid engineers={filteredEngineers} schedules={daySchedules} />
-        <TaskSummaryTable engineers={filteredEngineers} schedules={daySchedules} />
+        <TimelineGrid engineers={filteredEngineers} schedules={effectiveSchedules} onReschedule={handleReschedule} />
+        <TaskSummaryTable engineers={filteredEngineers} schedules={effectiveSchedules} />
       </div>
     </div>
   );
