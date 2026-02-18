@@ -30,7 +30,7 @@ const ScheduleTimeline = () => {
     return allSchedules
       .filter(s => s.date === dateStr)
       .filter(s => filters.domain === 'all' || s.domain === filters.domain)
-      .filter(s => !filters.subdomain || s.subdomain.toLowerCase().includes(filters.subdomain.toLowerCase()))
+      .filter(s => filters.subdomain === 'all' || s.subdomain === filters.subdomain)
       .filter(s => filters.taskType === 'all' || s.taskType === filters.taskType)
       .filter(s => filters.requestor === 'all' || s.requestor === filters.requestor);
   }, [dateStr, allSchedules, filters]);
@@ -39,6 +39,7 @@ const ScheduleTimeline = () => {
     let engs = allEngineers;
     if (filters.level !== 'all') engs = engs.filter(e => e.level === filters.level);
     if (filters.domain !== 'all') engs = engs.filter(e => e.domain === filters.domain);
+    if (filters.subdomain !== 'all') engs = engs.filter(e => e.subdomain === filters.subdomain);
     return engs.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
   }, [filters]);
 
