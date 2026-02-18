@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { EngineerLevel, TaskType, RequestorType } from '@/types/crq';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { engineers as allEngineers } from '@/data/mockData';
 
 interface FilterBarProps {
   onFiltersChange: (filters: FilterState) => void;
@@ -17,14 +17,23 @@ export interface FilterState {
 
 const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
   const [filters, setFilters] = useState<FilterState>({
-    domain: 'all', subdomain: '', taskType: 'all', level: 'all', requestor: 'all',
+    domain: 'all', subdomain: 'all', taskType: 'all', level: 'all', requestor: 'all',
   });
 
   const update = (key: keyof FilterState, value: string) => {
     const next = { ...filters, [key]: value };
+    // Reset subdomain when domain changes
+    if (key === 'domain') next.subdomain = 'all';
     setFilters(next);
     onFiltersChange(next);
   };
+
+  // Derive subdomains based on selected domain
+  const subdomains = useMemo(() => {
+    let engs = allEngineers;
+    if (filters.domain !== 'all') engs = engs.filter(e => e.domain === filters.domain);
+    return [...new Set(engs.map(e => e.subdomain))];
+  }, [filters.domain]);
 
   const taskTypes: TaskType[] = ['MOP Creation', 'MOP Validation', 'Impact Analysis', 'Deployment', 'Rollback', 'Monitoring'];
   const requestors: RequestorType[] = ['Deployment', 'NOC', 'Circle'];
@@ -41,12 +50,13 @@ const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
           <SelectItem value="Security">Security</SelectItem>
         </SelectContent>
       </Select>
-      <Input
-        placeholder="Subdomain..."
-        className="w-28 h-8 text-xs bg-secondary"
-        value={filters.subdomain}
-        onChange={e => update('subdomain', e.target.value)}
-      />
+      <Select value={filters.subdomain} onValueChange={v => update('subdomain', v)}>
+        <SelectTrigger className="w-36 h-8 text-xs bg-secondary"><SelectValue placeholder="Subdomain" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Subdomains</SelectItem>
+          {subdomains.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+        </SelectContent>
+      </Select>
       <Select value={filters.taskType} onValueChange={v => update('taskType', v)}>
         <SelectTrigger className="w-32 h-8 text-xs bg-secondary"><SelectValue placeholder="Task Type" /></SelectTrigger>
         <SelectContent>

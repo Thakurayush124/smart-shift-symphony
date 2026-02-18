@@ -101,10 +101,38 @@ const ManualScheduleDialog = ({ engineers, schedules, onSchedule }: ManualSchedu
       toast({ title: 'Missing fields', description: 'Please fill all required fields.', variant: 'destructive' });
       return;
     }
-    checkConflict();
-    if (conflict) return;
 
-    const eng = engineers.find(e => e.id === engineerId)!;
+    // Always re-check conflict before submitting
+    const start = parseInt(startHour);
+    const end = parseInt(endHour);
+    const eng = engineers.find(e => e.id === engineerId);
+    if (!eng) return;
+
+    if (start < eng.shiftStart || end > eng.shiftEnd) {
+      setConflict(`Shift violation: ${eng.name}'s shift is ${eng.shiftStart}:00–${eng.shiftEnd}:00`);
+      setSuggestion(`Schedule within ${eng.shiftStart}:00–${eng.shiftEnd}:00`);
+      return;
+    }
+
+    const overlapping = schedules.find(
+      s => s.engineerId === engineerId && !(end <= s.startHour || start >= s.endHour)
+    );
+    if (overlapping) {
+      setConflict(`Conflict: ${eng.name} already has ${overlapping.crqNumber} at ${overlapping.startHour}:00–${overlapping.endHour}:00`);
+      const engSchedules = schedules.filter(s => s.engineerId === engineerId).sort((a, b) => a.startHour - b.startHour);
+      const duration = end - start;
+      for (let h = eng.shiftStart; h + duration <= eng.shiftEnd; h++) {
+        const free = !engSchedules.some(s => !(h + duration <= s.startHour || h >= s.endHour));
+        if (free) {
+          setSuggestion(`Nearest free slot: ${h}:00–${h + duration}:00`);
+          return;
+        }
+      }
+      setSuggestion('No free slots available');
+      return;
+    }
+
+    // All checks passed — proceed
     const newSchedule: CRQSchedule = {
       id: `s-${Date.now()}`,
       crqNumber,
