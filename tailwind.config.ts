@@ -71,7 +71,11 @@ export default {
           occupied: "hsl(var(--status-occupied))",
           conflict: "hsl(var(--status-conflict))",
           warning: "hsl(var(--status-warning))",
+          breached: "hsl(var(--status-breached))",
+          pending: "hsl(var(--status-pending))",
+          ontrack: "hsl(var(--status-ontrack))",
         },
+        'off-shift': "hsl(var(--off-shift))",
         level: {
           l4: "hsl(var(--level-l4))",
           l3: "hsl(var(--level-l3))",

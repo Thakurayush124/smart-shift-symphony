@@ -46,6 +46,12 @@
     --status-occupied: 210 100% 55%;
     --status-conflict: 0 72% 51%;
     --status-warning: 38 92% 50%;
+    --status-breached: 0 80% 55%;
+    --status-pending: 45 90% 50%;
+    --status-ontrack: 150 60% 45%;
+
+    /* Off-shift */
+    --off-shift: 220 20% 10%;
 
     /* Level colors */
     --level-l4: 270 60% 60%;

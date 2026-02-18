@@ -118,14 +118,29 @@ const TimelineGrid = ({ engineers, schedules, onReschedule }: TimelineGridProps)
                       return (
                         <div
                           key={h}
-                          className={`absolute top-0 bottom-0 border-r border-border/30 transition-colors ${
-                            !inShift ? 'bg-muted/30' : isFree ? 'bg-status-free/5' : ''
+                          className={`absolute top-0 bottom-0 border-r transition-colors ${
+                            !inShift
+                              ? 'bg-off-shift/80 border-border/10'
+                              : isFree
+                                ? 'bg-status-free/10 border-status-free/20'
+                                : 'border-border/30'
                           } ${isDragOver && inShift ? 'bg-primary/20 ring-1 ring-primary/40' : ''}`}
                           style={{ left: (h - WORK_HOURS[0]) * HOUR_WIDTH, width: HOUR_WIDTH }}
                           onDrop={inShift ? (e) => handleDrop(e, eng.id, h) : undefined}
                           onDragOver={inShift ? (e) => handleDragOver(e, eng.id, h) : undefined}
                           onDragLeave={() => setDragOverCell(null)}
-                        />
+                        >
+                          {!inShift && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-full h-full bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,hsl(var(--border)/0.3)_4px,hsl(var(--border)/0.3)_5px)]" />
+                            </div>
+                          )}
+                          {isFree && (
+                            <div className="absolute inset-x-1 top-1 bottom-1 rounded-sm border border-dashed border-status-free/30 flex items-center justify-center">
+                              <span className="text-[8px] text-status-free/50 font-medium">FREE</span>
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                     {/* CRQ blocks */}

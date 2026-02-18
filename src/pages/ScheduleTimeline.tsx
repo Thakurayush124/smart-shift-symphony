@@ -11,6 +11,7 @@ import { CRQSchedule, LEVEL_ORDER } from '@/types/crq';
 import FilterBar, { FilterState } from '@/components/timeline/FilterBar';
 import TimelineGrid from '@/components/timeline/TimelineGrid';
 import TaskSummaryTable from '@/components/timeline/TaskSummaryTable';
+import TimelineAnalytics from '@/components/timeline/TimelineAnalytics';
 import ManualScheduleDialog from '@/components/scheduling/ManualScheduleDialog';
 
 const ScheduleTimeline = () => {
@@ -107,19 +108,24 @@ const ScheduleTimeline = () => {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mb-4 text-xs">
+        <div className="flex items-center gap-4 mb-4 text-xs flex-wrap">
           <span className="text-muted-foreground">Requestor:</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-requestor-deployment" /> Deployment</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-requestor-noc" /> NOC</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-requestor-circle" /> Circle</span>
-          <span className="text-muted-foreground ml-4">Shift:</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-status-free/20 border border-border" /> Free</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-muted/30 border border-border" /> Off Shift</span>
+          <span className="text-muted-foreground ml-4">Slots:</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-status-free/20 border border-dashed border-status-free/40" /> Free</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-off-shift/80 border border-border/30" style={{ backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 2px,hsl(220 15% 20% / 0.4) 2px,hsl(220 15% 20% / 0.4) 3px)' }} /> Off Shift</span>
+          <span className="text-muted-foreground ml-4">SLA:</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-ontrack" /> On Track</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-warning" /> At Risk</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-breached" /> Breached</span>
         </div>
 
         <FilterBar onFiltersChange={setFilters} />
         <TimelineGrid engineers={filteredEngineers} schedules={effectiveSchedules} onReschedule={handleReschedule} />
         <TaskSummaryTable engineers={filteredEngineers} schedules={effectiveSchedules} />
+        <TimelineAnalytics engineers={filteredEngineers} schedules={effectiveSchedules} />
       </div>
     </div>
   );
