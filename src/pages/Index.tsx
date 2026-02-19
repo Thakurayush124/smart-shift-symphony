@@ -6,9 +6,8 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import StatsCards from '@/components/dashboard/StatsCards';
 import TodayCRQList from '@/components/dashboard/TodayCRQList';
 import EngineerUtilization from '@/components/dashboard/EngineerUtilization';
-import FreeEngineersCard from '@/components/dashboard/FreeEngineersCard';
 import TaskWiseSummaryCard from '@/components/dashboard/TaskWiseSummaryCard';
-import HierarchyViewCard from '@/components/dashboard/HierarchyViewCard';
+import CRQByRequestorCard from '@/components/dashboard/CRQByRequestorCard';
 import { Button } from '@/components/ui/button';
 import { CalendarClock } from 'lucide-react';
 
@@ -40,10 +39,9 @@ const Index = () => {
           <EngineerUtilization engineers={engineers} schedules={daySchedules} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <FreeEngineersCard engineers={engineers} schedules={daySchedules} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TaskWiseSummaryCard schedules={daySchedules} />
-          <HierarchyViewCard engineers={engineers} schedules={daySchedules} />
+          <CRQByRequestorCard schedules={daySchedules} engineers={engineers} />
         </div>
       </div>
     </div>

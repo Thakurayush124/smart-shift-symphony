@@ -6,7 +6,7 @@ interface TaskSummaryTableProps {
   schedules: CRQSchedule[];
 }
 
-const TASK_TYPES: TaskType[] = ['Deployment', 'MOP Creation', 'MOP Validation', 'Impact Analysis', 'Rollback', 'Monitoring'];
+const TASK_TYPES: TaskType[] = ['CRQ Review', 'Impact Analysis', 'MOP Creation', 'MOP Validation', 'Scheduling of Activity', 'Scheduling Communication', 'Activity NW Exec'];
 
 const TaskSummaryTable = ({ engineers, schedules }: TaskSummaryTableProps) => {
   const sorted = [...engineers]
@@ -19,6 +19,9 @@ const TaskSummaryTable = ({ engineers, schedules }: TaskSummaryTableProps) => {
       .reduce((sum, s) => sum + (s.endHour - s.startHour), 0);
   };
 
+  // Only show task columns that have any data
+  const activeTasks = TASK_TYPES.filter(t => schedules.some(s => s.taskType === t));
+
   return (
     <div className="rounded-lg bg-card border border-border glow-card mt-4 overflow-hidden">
       <div className="p-4 border-b border-border">
@@ -29,19 +32,25 @@ const TaskSummaryTable = ({ engineers, schedules }: TaskSummaryTableProps) => {
           <TableHeader>
             <TableRow className="bg-secondary/50">
               <TableHead className="text-xs">Engineer</TableHead>
-              {TASK_TYPES.map(t => (
-                <TableHead key={t} className="text-xs text-center">{t} (hrs)</TableHead>
+              <TableHead className="text-xs">Team</TableHead>
+              {activeTasks.map(t => (
+                <TableHead key={t} className="text-xs text-center whitespace-nowrap">{t}</TableHead>
               ))}
-              <TableHead className="text-xs text-center font-bold">Total</TableHead>
+              <TableHead className="text-xs text-center font-bold">Total hrs</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sorted.map(eng => {
-              const total = TASK_TYPES.reduce((sum, t) => sum + getHours(eng.id, t), 0);
+              const total = activeTasks.reduce((sum, t) => sum + getHours(eng.id, t), 0);
               return (
                 <TableRow key={eng.id}>
                   <TableCell className="text-xs font-medium">{eng.name} <span className="text-muted-foreground">({eng.level})</span></TableCell>
-                  {TASK_TYPES.map(t => {
+                  <TableCell className="text-xs">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${eng.team === 'CCB' ? 'bg-level-l4/20 text-level-l4' : 'bg-requestor-circle/20 text-requestor-circle'}`}>
+                      {eng.team}
+                    </span>
+                  </TableCell>
+                  {activeTasks.map(t => {
                     const hrs = getHours(eng.id, t);
                     return <TableCell key={t} className="text-center font-mono text-xs">{hrs || '–'}</TableCell>;
                   })}
