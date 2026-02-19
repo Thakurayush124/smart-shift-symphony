@@ -1,16 +1,24 @@
-import { CRQSchedule, TaskType } from '@/types/crq';
+import { CRQSchedule, TaskType, CCB_TASKS, SE_TASKS } from '@/types/crq';
 
 interface TaskWiseSummaryCardProps {
   schedules: CRQSchedule[];
 }
 
-const TASK_TYPES: TaskType[] = ['MOP Creation', 'MOP Validation', 'Impact Analysis', 'Deployment', 'Rollback', 'Monitoring'];
+const TASK_COLORS: Record<string, string> = {
+  'CRQ Review': 'hsl(var(--primary))',
+  'Impact Analysis': 'hsl(var(--status-warning))',
+  'MOP Creation': 'hsl(var(--level-l4))',
+  'MOP Validation': 'hsl(var(--level-l2))',
+  'Scheduling of Activity': 'hsl(var(--requestor-circle))',
+  'Scheduling Communication': 'hsl(var(--status-free))',
+  'Activity NW Exec': 'hsl(var(--status-conflict))',
+};
+
+const ALL_TASK_TYPES: TaskType[] = [...CCB_TASKS, ...SE_TASKS];
 
 const TaskWiseSummaryCard = ({ schedules }: TaskWiseSummaryCardProps) => {
-  const taskData = TASK_TYPES.map(t => {
-    const hours = schedules
-      .filter(s => s.taskType === t)
-      .reduce((sum, s) => sum + (s.endHour - s.startHour), 0);
+  const taskData = ALL_TASK_TYPES.map(t => {
+    const hours = schedules.filter(s => s.taskType === t).reduce((sum, s) => sum + (s.endHour - s.startHour), 0);
     return { type: t, hours };
   }).filter(d => d.hours > 0);
 
@@ -34,8 +42,8 @@ const TaskWiseSummaryCard = ({ schedules }: TaskWiseSummaryCardProps) => {
               </div>
               <div className="h-2 rounded-full bg-secondary overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
-                  style={{ width: `${(d.hours / maxHours) * 100}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${(d.hours / maxHours) * 100}%`, backgroundColor: TASK_COLORS[d.type] || 'hsl(var(--primary))' }}
                 />
               </div>
             </div>
