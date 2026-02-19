@@ -1,8 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Engineer, CRQSchedule, LEVEL_ORDER } from '@/types/crq';
-
-// Show 7am–10pm (15 hours) as the core work view
-const GRID_HOURS = Array.from({ length: 15 }, (_, i) => i + 7);
+import { Engineer, CRQSchedule, LEVEL_ORDER, WORK_HOURS } from '@/types/crq';
 import CRQBlock from './CRQBlock';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -88,13 +85,13 @@ const TimelineGrid = ({ engineers, schedules, onReschedule }: TimelineGridProps)
     <>
       <div className="rounded-lg bg-card border border-border glow-card overflow-hidden">
         <div className="overflow-x-auto scrollbar-thin">
-          <div style={{ minWidth: `${200 + GRID_HOURS.length * HOUR_WIDTH}px` }}>
+          <div style={{ minWidth: `${200 + WORK_HOURS.length * HOUR_WIDTH}px` }}>
             {/* Header */}
             <div className="flex border-b border-border bg-secondary/50 sticky top-0 z-10">
               <div className="w-[200px] flex-shrink-0 p-3 text-xs font-medium uppercase tracking-wider text-muted-foreground border-r border-border">
                 Engineer
               </div>
-              {GRID_HOURS.map(h => (
+              {WORK_HOURS.map(h => (
                 <div key={h} className="text-center text-[11px] font-mono text-muted-foreground border-r border-border/50 py-3" style={{ width: HOUR_WIDTH }}>
                   {h}:00
                 </div>
@@ -110,12 +107,11 @@ const TimelineGrid = ({ engineers, schedules, onReschedule }: TimelineGridProps)
                       <span className="text-sm font-medium truncate">{eng.name}</span>
                       <Badge variant="outline" className={`text-[9px] border ${levelColors[eng.level]}`}>{eng.level}</Badge>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{eng.domain}</span>
-                    <span className="text-[10px] text-muted-foreground/60">{eng.shiftType}</span>
+                    <span className="text-[11px] text-muted-foreground">{eng.domain}</span>
                   </div>
                   <div className="relative flex-1" style={{ height: 56 }}>
                     {/* Shift boundary + drop zones */}
-                    {GRID_HOURS.map(h => {
+                    {WORK_HOURS.map(h => {
                       const inShift = h >= eng.shiftStart && h < eng.shiftEnd;
                       const isFree = inShift && !engSchedules.some(s => h >= s.startHour && h < s.endHour);
                       const isDragOver = dragOverCell?.engId === eng.id && dragOverCell?.hour === h;
@@ -129,7 +125,7 @@ const TimelineGrid = ({ engineers, schedules, onReschedule }: TimelineGridProps)
                                 ? 'bg-status-free/10 border-status-free/20'
                                 : 'border-border/30'
                           } ${isDragOver && inShift ? 'bg-primary/20 ring-1 ring-primary/40' : ''}`}
-                          style={{ left: (h - GRID_HOURS[0]) * HOUR_WIDTH, width: HOUR_WIDTH }}
+                          style={{ left: (h - WORK_HOURS[0]) * HOUR_WIDTH, width: HOUR_WIDTH }}
                           onDrop={inShift ? (e) => handleDrop(e, eng.id, h) : undefined}
                           onDragOver={inShift ? (e) => handleDragOver(e, eng.id, h) : undefined}
                           onDragLeave={() => setDragOverCell(null)}
@@ -155,7 +151,7 @@ const TimelineGrid = ({ engineers, schedules, onReschedule }: TimelineGridProps)
                         engineerName={eng.name}
                         engineerLevel={eng.level}
                         hourWidth={HOUR_WIDTH}
-                        startOffset={(s.startHour - GRID_HOURS[0]) * HOUR_WIDTH + 2}
+                        startOffset={(s.startHour - WORK_HOURS[0]) * HOUR_WIDTH + 2}
                       />
                     ))}
                   </div>

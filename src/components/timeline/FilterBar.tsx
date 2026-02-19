@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { DOMAIN_SUBDOMAIN_MAP, ALL_DOMAINS, TeamType, TaskType, RequestorType, TEAM_TASKS } from '@/types/crq';
+import { EngineerLevel, TaskType, RequestorType } from '@/types/crq';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { engineers as allEngineers } from '@/data/mockData';
 
 interface FilterBarProps {
   onFiltersChange: (filters: FilterState) => void;
@@ -9,74 +10,60 @@ interface FilterBarProps {
 export interface FilterState {
   domain: string;
   subdomain: string;
-  team: string;
   taskType: string;
   level: string;
   requestor: string;
 }
 
-const requestors: RequestorType[] = ['Deployment', 'NOC', 'Circle'];
-
 const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
   const [filters, setFilters] = useState<FilterState>({
-    domain: 'all', subdomain: 'all', team: 'all', taskType: 'all', level: 'all', requestor: 'all',
+    domain: 'all', subdomain: 'all', taskType: 'all', level: 'all', requestor: 'all',
   });
 
   const update = (key: keyof FilterState, value: string) => {
     const next = { ...filters, [key]: value };
+    // Reset subdomain when domain changes
     if (key === 'domain') next.subdomain = 'all';
-    if (key === 'team') next.taskType = 'all';
     setFilters(next);
     onFiltersChange(next);
   };
 
+  // Derive subdomains based on selected domain
   const subdomains = useMemo(() => {
-    if (filters.domain === 'all') return [];
-    return DOMAIN_SUBDOMAIN_MAP[filters.domain] || [];
+    let engs = allEngineers;
+    if (filters.domain !== 'all') engs = engs.filter(e => e.domain === filters.domain);
+    return [...new Set(engs.map(e => e.subdomain))];
   }, [filters.domain]);
 
-  const taskTypes: TaskType[] = useMemo(() => {
-    if (filters.team === 'all') return [...TEAM_TASKS['CCB'], ...TEAM_TASKS['SE']];
-    return TEAM_TASKS[filters.team as TeamType];
-  }, [filters.team]);
+  const taskTypes: TaskType[] = ['MOP Creation', 'MOP Validation', 'Impact Analysis', 'Deployment', 'Rollback', 'Monitoring'];
+  const requestors: RequestorType[] = ['Deployment', 'NOC', 'Circle'];
 
   return (
-    <div className="flex items-center gap-2 flex-wrap p-4 rounded-lg bg-card border border-border mb-4">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mr-1">Filters</span>
-
+    <div className="flex items-center gap-3 flex-wrap p-4 rounded-lg bg-card border border-border mb-4">
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mr-2">Filters</span>
       <Select value={filters.domain} onValueChange={v => update('domain', v)}>
-        <SelectTrigger className="w-36 h-8 text-xs bg-secondary"><SelectValue placeholder="Domain" /></SelectTrigger>
+        <SelectTrigger className="w-28 h-8 text-xs bg-secondary"><SelectValue placeholder="Domain" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Domains</SelectItem>
-          {ALL_DOMAINS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+          <SelectItem value="Network">Network</SelectItem>
+          <SelectItem value="Cloud">Cloud</SelectItem>
+          <SelectItem value="Security">Security</SelectItem>
         </SelectContent>
       </Select>
-
-      <Select value={filters.subdomain} onValueChange={v => update('subdomain', v)} disabled={filters.domain === 'all'}>
-        <SelectTrigger className="w-40 h-8 text-xs bg-secondary"><SelectValue placeholder={filters.domain === 'all' ? 'Select Domain first' : 'All Subdomains'} /></SelectTrigger>
+      <Select value={filters.subdomain} onValueChange={v => update('subdomain', v)}>
+        <SelectTrigger className="w-36 h-8 text-xs bg-secondary"><SelectValue placeholder="Subdomain" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Subdomains</SelectItem>
           {subdomains.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
         </SelectContent>
       </Select>
-
-      <Select value={filters.team} onValueChange={v => update('team', v)}>
-        <SelectTrigger className="w-24 h-8 text-xs bg-secondary"><SelectValue placeholder="Team" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Teams</SelectItem>
-          <SelectItem value="CCB">CCB</SelectItem>
-          <SelectItem value="SE">SE</SelectItem>
-        </SelectContent>
-      </Select>
-
       <Select value={filters.taskType} onValueChange={v => update('taskType', v)}>
-        <SelectTrigger className="w-44 h-8 text-xs bg-secondary"><SelectValue placeholder="Task Type" /></SelectTrigger>
+        <SelectTrigger className="w-32 h-8 text-xs bg-secondary"><SelectValue placeholder="Task Type" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Tasks</SelectItem>
           {taskTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
         </SelectContent>
       </Select>
-
       <Select value={filters.level} onValueChange={v => update('level', v)}>
         <SelectTrigger className="w-24 h-8 text-xs bg-secondary"><SelectValue placeholder="Level" /></SelectTrigger>
         <SelectContent>
@@ -87,7 +74,6 @@ const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
           <SelectItem value="L1">L1</SelectItem>
         </SelectContent>
       </Select>
-
       <Select value={filters.requestor} onValueChange={v => update('requestor', v)}>
         <SelectTrigger className="w-28 h-8 text-xs bg-secondary"><SelectValue placeholder="Requestor" /></SelectTrigger>
         <SelectContent>

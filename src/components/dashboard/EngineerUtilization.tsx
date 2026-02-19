@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Engineer, CRQSchedule, EngineerLevel, TaskType, LEVEL_ORDER, CCB_TASKS, SE_TASKS } from '@/types/crq';
+import { Engineer, CRQSchedule, EngineerLevel, TaskType, LEVEL_ORDER } from '@/types/crq';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -15,23 +15,12 @@ const levelColors: Record<EngineerLevel, string> = {
   L1: 'bg-level-l1/20 text-level-l1 border-level-l1/30',
 };
 
-const shiftTypeLabel: Record<string, string> = {
-  'General Shift': '🌅 General',
-  'Night Shift': '🌙 Night',
-  'Week Off': '🏖 Week Off',
-  'On Leave': '🤒 On Leave',
-};
-
-const allTaskTypes: TaskType[] = [...CCB_TASKS, ...SE_TASKS];
-
 const EngineerUtilization = ({ engineers, schedules }: EngineerUtilizationProps) => {
   const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [teamFilter, setTeamFilter] = useState<string>('all');
   const [taskFilter, setTaskFilter] = useState<string>('all');
 
   const filteredEngineers = engineers
     .filter(e => levelFilter === 'all' || e.level === levelFilter)
-    .filter(e => teamFilter === 'all' || e.team === teamFilter)
     .filter(e => {
       if (taskFilter === 'all') return true;
       return schedules.some(s => s.engineerId === e.id && s.taskType === taskFilter);
@@ -47,13 +36,17 @@ const EngineerUtilization = ({ engineers, schedules }: EngineerUtilizationProps)
     return { scheduledHours, shiftHours, utilization, freeHours, taskCount: engSchedules.length };
   };
 
+  const taskTypes: TaskType[] = ['MOP Creation', 'MOP Validation', 'Impact Analysis', 'Deployment', 'Rollback', 'Monitoring'];
+
   return (
     <div className="rounded-lg bg-card border border-border glow-card animate-slide-in">
       <div className="p-5 border-b border-border">
         <h2 className="text-lg font-semibold mb-3">Engineer Utilization</h2>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-3">
           <Select value={levelFilter} onValueChange={setLevelFilter}>
-            <SelectTrigger className="w-28 h-8 text-xs bg-secondary"><SelectValue placeholder="Level" /></SelectTrigger>
+            <SelectTrigger className="w-28 h-8 text-xs bg-secondary">
+              <SelectValue placeholder="Level" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Levels</SelectItem>
               <SelectItem value="L4">L4</SelectItem>
@@ -62,19 +55,13 @@ const EngineerUtilization = ({ engineers, schedules }: EngineerUtilizationProps)
               <SelectItem value="L1">L1</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={teamFilter} onValueChange={setTeamFilter}>
-            <SelectTrigger className="w-24 h-8 text-xs bg-secondary"><SelectValue placeholder="Team" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Teams</SelectItem>
-              <SelectItem value="CCB">CCB</SelectItem>
-              <SelectItem value="SE">SE</SelectItem>
-            </SelectContent>
-          </Select>
           <Select value={taskFilter} onValueChange={setTaskFilter}>
-            <SelectTrigger className="w-44 h-8 text-xs bg-secondary"><SelectValue placeholder="Task Type" /></SelectTrigger>
+            <SelectTrigger className="w-36 h-8 text-xs bg-secondary">
+              <SelectValue placeholder="Task Type" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tasks</SelectItem>
-              {allTaskTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              {taskTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -87,8 +74,7 @@ const EngineerUtilization = ({ engineers, schedules }: EngineerUtilizationProps)
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm">{eng.name}</span>
-                  <Badge variant="outline" className={`text-[9px] border ${levelColors[eng.level]}`}>{eng.level}</Badge>
-                  <Badge variant="outline" className={`text-[9px] border-0 ${eng.team === 'CCB' ? 'bg-level-l4/20 text-level-l4' : 'bg-requestor-circle/20 text-requestor-circle'}`}>{eng.team}</Badge>
+                  <Badge variant="outline" className={`text-[10px] border ${levelColors[eng.level]}`}>{eng.level}</Badge>
                 </div>
                 <span className="font-mono text-sm font-bold" style={{
                   color: stats.utilization > 80 ? 'hsl(var(--status-conflict))' : stats.utilization > 50 ? 'hsl(var(--status-warning))' : 'hsl(var(--status-free))'
@@ -96,15 +82,19 @@ const EngineerUtilization = ({ engineers, schedules }: EngineerUtilizationProps)
                   {stats.utilization}%
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>{eng.domain} · {eng.subdomain}</span>
-                <span className="text-foreground/70">{shiftTypeLabel[eng.shiftType] || eng.shiftType}</span>
+                <span>{eng.shiftStart}:00–{eng.shiftEnd}:00</span>
               </div>
+              {/* Utilization bar */}
               <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-500" style={{
-                  width: `${stats.utilization}%`,
-                  backgroundColor: stats.utilization > 80 ? 'hsl(var(--status-conflict))' : stats.utilization > 50 ? 'hsl(var(--status-warning))' : 'hsl(var(--status-free))'
-                }} />
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${stats.utilization}%`,
+                    backgroundColor: stats.utilization > 80 ? 'hsl(var(--status-conflict))' : stats.utilization > 50 ? 'hsl(var(--status-warning))' : 'hsl(var(--status-free))'
+                  }}
+                />
               </div>
               <div className="flex gap-4 mt-2 text-[11px] text-muted-foreground font-mono">
                 <span>Scheduled: {stats.scheduledHours}h</span>
